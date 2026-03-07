@@ -1,5 +1,27 @@
 import { TMDBResponse, Movie, TVShow, NormalizedMedia } from "@/types/movie";
 
+interface MultiSearchItem {
+  id: number;
+  media_type: "movie" | "tv" | "person";
+  title?: string;
+  name?: string;
+  overview?: string;
+  poster_path?: string | null;
+  backdrop_path?: string | null;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average?: number;
+  vote_count?: number;
+  genre_ids?: number[];
+}
+
+interface MultiSearchResponse {
+  page: number;
+  results: MultiSearchItem[];
+  total_pages: number;
+  total_results: number;
+}
+
 const BASE_URL = "https://api.themoviedb.org/3";
 export const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 export const BACKDROP_BASE = "https://image.tmdb.org/t/p/original";
@@ -89,6 +111,32 @@ export function getBackdropUrl(path: string | null): string | null {
 export function getReleaseYear(dateStr: string): string {
   if (!dateStr) return "";
   return dateStr.slice(0, 4);
+}
+
+export async function fetchSearchMulti(
+  query: string,
+  page = 1
+): Promise<{ results: NormalizedMedia[]; total_pages: number; total_results: number }> {
+  const data = await tmdbFetch<MultiSearchResponse>("/search/multi", {
+    query,
+    page: String(page),
+    include_adult: "false",
+  });
+  const results = data.results
+    .filter((item) => item.media_type === "movie" || item.media_type === "tv")
+    .map((item): NormalizedMedia => ({
+      id: item.id,
+      media_type: item.media_type as "movie" | "tv",
+      title: (item.media_type === "tv" ? item.name : item.title) ?? "",
+      overview: item.overview ?? "",
+      poster_path: item.poster_path ?? null,
+      backdrop_path: item.backdrop_path ?? null,
+      release_date: (item.media_type === "tv" ? item.first_air_date : item.release_date) ?? "",
+      vote_average: item.vote_average ?? 0,
+      vote_count: item.vote_count ?? 0,
+      genre_ids: item.genre_ids ?? [],
+    }));
+  return { results, total_pages: data.total_pages, total_results: data.total_results };
 }
 
 export function normalizeMedia(item: Movie | TVShow, media_type: "movie" | "tv"): NormalizedMedia {
