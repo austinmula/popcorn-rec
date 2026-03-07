@@ -12,9 +12,15 @@ import {
 } from "@/lib/tmdb";
 import { GENRES, MOODS, ERAS } from "@/lib/categories";
 import CategorySection from "@/components/CategorySection";
+import { fetchTrendingTV, fetchTVTopRated } from "@/lib/tmdb-tv";
 
 export default async function HomePage() {
-  const [trending, topRated] = await Promise.all([fetchTrending(), fetchTopRated()]);
+  const [trending, topRated, trendingTV, topRatedTV] = await Promise.all([
+    fetchTrending(),
+    fetchTopRated(),
+    fetchTrendingTV(),
+    fetchTVTopRated(),
+  ]);
 
   const hero = trending.results[0];
   const trendingMovies = trending.results.slice(1, 13).map((m) => normalizeMedia(m, "movie"));
@@ -136,6 +142,19 @@ export default async function HomePage() {
           title="All-Time Greats"
           movies={topRated.results.slice(0, 12).map((m) => normalizeMedia(m, "movie"))}
           seeAllHref="/top/all-time"
+        />
+
+        {/* TV Shows */}
+        <section className="mb-4 mt-4">
+          <h2 className="text-xl font-semibold text-white mb-6">TV Shows</h2>
+        </section>
+        <CategorySection
+          title="Trending TV This Week"
+          movies={trendingTV.slice(0, 12)}
+        />
+        <CategorySection
+          title="Top Rated Shows"
+          movies={topRatedTV.slice(0, 12)}
         />
       </div>
     </main>
