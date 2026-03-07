@@ -20,6 +20,15 @@ export default function Header() {
           <Link href="/top/hidden-gems" className="hover:text-white transition-colors">
             Hidden Gems
           </Link>
+          <Link href="/watchlist" className="hover:text-white transition-colors">
+            Watchlist
+          </Link>
+          <Link
+            href="/recommendations"
+            className="px-3 py-1.5 rounded-full bg-[#f5c518]/10 text-[#f5c518] hover:bg-[#f5c518]/20 transition-colors font-medium"
+          >
+            For You
+          </Link>
         </nav>
       </div>
     </header>
