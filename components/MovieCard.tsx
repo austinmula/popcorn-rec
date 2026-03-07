@@ -1,10 +1,10 @@
 import Image from "next/image";
-import Link from "next/link";
-import { Movie } from "@/types/movie";
+import { NormalizedMedia } from "@/types/movie";
 import { getPosterUrl, getReleaseYear } from "@/lib/tmdb";
+import WatchlistButton from "./WatchlistButton";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: NormalizedMedia;
 }
 
 export default function MovieCard({ movie }: MovieCardProps) {
@@ -30,6 +30,16 @@ export default function MovieCard({ movie }: MovieCardProps) {
         )}
         <div className="absolute top-2 right-2 bg-black/80 text-[#f5c518] text-xs font-bold px-1.5 py-0.5 rounded">
           {rating}
+        </div>
+        <div className="absolute bottom-2 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <WatchlistButton
+            tmdb_id={movie.id}
+            media_type={movie.media_type}
+            title={movie.title}
+            poster_path={movie.poster_path}
+            genre_ids={movie.genre_ids}
+            vote_average={movie.vote_average}
+          />
         </div>
       </div>
       <div className="mt-2 px-0.5">

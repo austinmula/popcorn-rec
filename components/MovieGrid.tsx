@@ -1,8 +1,8 @@
-import { Movie } from "@/types/movie";
+import { NormalizedMedia } from "@/types/movie";
 import MovieCard from "./MovieCard";
 
 interface MovieGridProps {
-  movies: Movie[];
+  movies: NormalizedMedia[];
 }
 
 export default function MovieGrid({ movies }: MovieGridProps) {

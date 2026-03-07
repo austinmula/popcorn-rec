@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchEraMovies } from "@/lib/tmdb";
+import { fetchEraMovies, normalizeMedia } from "@/lib/tmdb";
 import { ERAS } from "@/lib/categories";
 import MovieGrid from "@/components/MovieGrid";
 
@@ -28,7 +28,7 @@ export default async function EraPage({ params, searchParams }: Props) {
       <p className="text-gray-400 mb-8">
         Top movies from {era.startYear}–{era.endYear}
       </p>
-      <MovieGrid movies={data.results} />
+      <MovieGrid movies={data.results.map((m) => normalizeMedia(m, "movie"))} />
       <div className="flex justify-center gap-4 mt-10">
         {page > 1 && (
           <Link

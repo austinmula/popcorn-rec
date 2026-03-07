@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchTrending, fetchTopRated, fetchHiddenGems } from "@/lib/tmdb";
+import { fetchTrending, fetchTopRated, fetchHiddenGems, normalizeMedia } from "@/lib/tmdb";
 import { TOP_LISTS } from "@/lib/categories";
 import { TMDBResponse } from "@/types/movie";
 import MovieGrid from "@/components/MovieGrid";
@@ -35,7 +35,7 @@ export default async function TopPage({ params, searchParams }: Props) {
       </Link>
       <h1 className="text-3xl font-bold text-white mt-4 mb-2">{topList.label}</h1>
       <p className="text-gray-400 mb-8">{topList.description}</p>
-      <MovieGrid movies={data.results} />
+      <MovieGrid movies={data.results.map((m) => normalizeMedia(m, "movie"))} />
       {!isTrending && (
         <div className="flex justify-center gap-4 mt-10">
           {page > 1 && (

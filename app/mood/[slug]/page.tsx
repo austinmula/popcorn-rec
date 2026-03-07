@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchMoodMovies } from "@/lib/tmdb";
+import { fetchMoodMovies, normalizeMedia } from "@/lib/tmdb";
 import { MOODS } from "@/lib/categories";
 import MovieGrid from "@/components/MovieGrid";
 
@@ -26,7 +26,7 @@ export default async function MoodPage({ params, searchParams }: Props) {
       </Link>
       <h1 className="text-3xl font-bold text-white mt-4 mb-2">{mood.name}</h1>
       <p className="text-gray-400 mb-8">{mood.description}</p>
-      <MovieGrid movies={data.results} />
+      <MovieGrid movies={data.results.map((m) => normalizeMedia(m, "movie"))} />
       <div className="flex justify-center gap-4 mt-10">
         {page > 1 && (
           <Link

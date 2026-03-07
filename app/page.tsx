@@ -8,6 +8,7 @@ import {
   fetchTopRated,
   getBackdropUrl,
   getReleaseYear,
+  normalizeMedia,
 } from "@/lib/tmdb";
 import { GENRES, MOODS, ERAS } from "@/lib/categories";
 import CategorySection from "@/components/CategorySection";
@@ -16,7 +17,7 @@ export default async function HomePage() {
   const [trending, topRated] = await Promise.all([fetchTrending(), fetchTopRated()]);
 
   const hero = trending.results[0];
-  const trendingMovies = trending.results.slice(1, 13);
+  const trendingMovies = trending.results.slice(1, 13).map((m) => normalizeMedia(m, "movie"));
 
   const [actionMovies, ...moodResults] = await Promise.all([
     fetchGenreMovies(GENRES[0].id),
@@ -86,7 +87,7 @@ export default async function HomePage() {
           </div>
           <CategorySection
             title="Action"
-            movies={actionMovies.results.slice(0, 12)}
+            movies={actionMovies.results.slice(0, 12).map((m) => normalizeMedia(m, "movie"))}
             seeAllHref="/genre/action"
           />
         </section>
@@ -98,7 +99,7 @@ export default async function HomePage() {
             <CategorySection
               key={mood.slug}
               title={mood.name}
-              movies={moodResults[i]?.results.slice(0, 12) ?? []}
+              movies={(moodResults[i]?.results.slice(0, 12) ?? []).map((m) => normalizeMedia(m, "movie"))}
               seeAllHref={`/mood/${mood.slug}`}
             />
           ))}
@@ -124,7 +125,7 @@ export default async function HomePage() {
             <CategorySection
               key={ERAS[i].decade}
               title={`Best of the ${ERAS[i].label}`}
-              movies={result.results.slice(0, 12)}
+              movies={result.results.slice(0, 12).map((m) => normalizeMedia(m, "movie"))}
               seeAllHref={`/era/${ERAS[i].decade}`}
             />
           ))}
@@ -133,7 +134,7 @@ export default async function HomePage() {
         {/* All-Time Greats */}
         <CategorySection
           title="All-Time Greats"
-          movies={topRated.results.slice(0, 12)}
+          movies={topRated.results.slice(0, 12).map((m) => normalizeMedia(m, "movie"))}
           seeAllHref="/top/all-time"
         />
       </div>

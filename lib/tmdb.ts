@@ -1,4 +1,4 @@
-import { TMDBResponse, Movie } from "@/types/movie";
+import { TMDBResponse, Movie, TVShow, NormalizedMedia } from "@/types/movie";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 export const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
@@ -89,4 +89,35 @@ export function getBackdropUrl(path: string | null): string | null {
 export function getReleaseYear(dateStr: string): string {
   if (!dateStr) return "";
   return dateStr.slice(0, 4);
+}
+
+export function normalizeMedia(item: Movie | TVShow, media_type: "movie" | "tv"): NormalizedMedia {
+  if (media_type === "tv") {
+    const tv = item as TVShow;
+    return {
+      id: tv.id,
+      media_type: "tv",
+      title: tv.name,
+      overview: tv.overview,
+      poster_path: tv.poster_path,
+      backdrop_path: tv.backdrop_path,
+      release_date: tv.first_air_date,
+      vote_average: tv.vote_average,
+      vote_count: tv.vote_count,
+      genre_ids: tv.genre_ids,
+    };
+  }
+  const movie = item as Movie;
+  return {
+    id: movie.id,
+    media_type: "movie",
+    title: movie.title,
+    overview: movie.overview,
+    poster_path: movie.poster_path,
+    backdrop_path: movie.backdrop_path,
+    release_date: movie.release_date,
+    vote_average: movie.vote_average,
+    vote_count: movie.vote_count,
+    genre_ids: movie.genre_ids,
+  };
 }

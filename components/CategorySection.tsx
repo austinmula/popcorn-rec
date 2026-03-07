@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Movie } from "@/types/movie";
+import { NormalizedMedia } from "@/types/movie";
 import MovieCard from "./MovieCard";
 
 interface CategorySectionProps {
   title: string;
-  movies: Movie[];
+  movies: NormalizedMedia[];
   seeAllHref?: string;
 }
 
