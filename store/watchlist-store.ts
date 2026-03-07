@@ -27,18 +27,18 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
   initialized: false,
 
   initialize(entries) {
-    set({ entries, initialized: true });
+    set({ entries: entries ?? [], initialized: true });
   },
 
   getStatus(tmdb_id, media_type) {
-    const entry = get().entries.find(
+    const entry = (get().entries ?? []).find(
       (e) => e.tmdb_id === tmdb_id && e.media_type === media_type
     );
     return entry?.status ?? null;
   },
 
   async setStatus(tmdb_id, media_type, status, meta) {
-    const prev = get().entries;
+    const prev = get().entries ?? [];
     const now = new Date();
 
     // Optimistic update
@@ -86,7 +86,7 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
   },
 
   async removeEntry(tmdb_id, media_type) {
-    const prev = get().entries;
+    const prev = get().entries ?? [];
     // Optimistic remove
     set({ entries: prev.filter((e) => !(e.tmdb_id === tmdb_id && e.media_type === media_type)) });
 
