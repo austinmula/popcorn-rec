@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { WatchlistEntry, WatchStatus } from "@/types/watchlist";
 import { useWatchlistStore } from "@/store/watchlist-store";
-import { getPosterUrl, getReleaseYear } from "@/lib/tmdb";
+import { getPosterUrl } from "@/lib/tmdb";
 
 const GROUPS: { status: WatchStatus; label: string; icon: string }[] = [
   { status: "liked", label: "Liked", icon: "❤️" },
@@ -44,7 +44,7 @@ export default function WatchlistClient({ initialEntries }: Props) {
       <div className="text-center py-20 text-gray-400">
         <p className="text-5xl mb-4">🍿</p>
         <p className="text-xl">Your watchlist is empty.</p>
-        <p className="text-sm mt-2">Hover over any movie or show card to add it.</p>
+        <p className="text-sm mt-2">Tap any movie or show card to add it.</p>
       </div>
     );
   }
@@ -108,7 +108,6 @@ function EntryRow({
   onRemove: () => void;
 }) {
   const posterUrl = getPosterUrl(entry.poster_path);
-  const year = entry.added_at ? getReleaseYear(new Date(entry.added_at).toISOString()) : "";
 
   return (
     <div className="flex items-center gap-4 bg-white/5 rounded-lg p-3 border border-white/10 hover:border-white/20 transition-colors">
@@ -127,7 +126,7 @@ function EntryRow({
       <div className="flex-1 min-w-0">
         <p className="text-white font-medium truncate">{entry.title}</p>
         <p className="text-gray-400 text-xs mt-0.5">
-          {entry.media_type === "tv" ? "TV Show" : "Movie"}{year ? ` · ${year}` : ""}
+          {entry.media_type === "tv" ? "TV Show" : "Movie"}
         </p>
       </div>
 

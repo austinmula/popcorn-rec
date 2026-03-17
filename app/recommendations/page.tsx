@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getRecommendations } from "@/lib/recommendations";
 import MovieGrid from "@/components/MovieGrid";
+import RefreshButton from "./RefreshButton";
 
 export const revalidate = 300;
 
@@ -12,7 +13,10 @@ export default async function RecommendationsPage() {
       <Link href="/" className="text-[#f5c518] text-sm hover:opacity-80 transition-opacity">
         ← Back to home
       </Link>
-      <h1 className="text-3xl font-bold text-white mt-4 mb-2">For You</h1>
+      <div className="flex items-center justify-between mt-4 mb-2">
+        <h1 className="text-3xl font-bold text-white">For You</h1>
+        <RefreshButton />
+      </div>
       <p className="text-gray-400 mb-8">
         Personalized picks based on your liked movies and shows
       </p>
@@ -22,7 +26,7 @@ export default async function RecommendationsPage() {
           <p className="text-5xl mb-4">❤️</p>
           <p className="text-xl">Like some movies or shows first.</p>
           <p className="text-sm mt-2">
-            Hover over any card and press ❤️ to get personalized recommendations.
+            Tap any card and press ❤️ to get personalized recommendations.
           </p>
           <Link
             href="/"
