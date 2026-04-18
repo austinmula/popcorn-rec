@@ -80,22 +80,58 @@ export async function fetchEraMovies(
   });
 }
 
-export async function fetchTrending(): Promise<TMDBResponse> {
-  return tmdbFetch("/trending/movie/week");
+const UI_PAGE_SIZE = 24;
+const TMDB_PAGE_SIZE = 20;
+
+async function fetchPaged(
+  endpoint: string,
+  params: Record<string, string>,
+  uiPage: number
+): Promise<TMDBResponse> {
+  const startItem = (uiPage - 1) * UI_PAGE_SIZE;
+  const endItem = uiPage * UI_PAGE_SIZE - 1;
+  const tmdbPage1 = Math.floor(startItem / TMDB_PAGE_SIZE) + 1;
+  const tmdbPage2 = Math.floor(endItem / TMDB_PAGE_SIZE) + 1;
+
+  const fetches = [
+    tmdbFetch<TMDBResponse>(endpoint, { ...params, page: String(tmdbPage1) }),
+    ...(tmdbPage2 !== tmdbPage1
+      ? [tmdbFetch<TMDBResponse>(endpoint, { ...params, page: String(tmdbPage2) })]
+      : []),
+  ];
+
+  const pages = await Promise.all(fetches);
+  const combined = pages.flatMap((p) => p.results);
+  const offset = startItem % TMDB_PAGE_SIZE;
+
+  return {
+    page: uiPage,
+    results: combined.slice(offset, offset + UI_PAGE_SIZE),
+    total_pages: Math.ceil(pages[0].total_results / UI_PAGE_SIZE),
+    total_results: pages[0].total_results,
+  };
+}
+
+export async function fetchTrending(page = 1): Promise<TMDBResponse> {
+  return fetchPaged("/trending/movie/week", {}, page);
 }
 
 export async function fetchTopRated(page = 1): Promise<TMDBResponse> {
-  return tmdbFetch("/movie/top_rated", { page: String(page) });
+  return fetchPaged("/movie/top_rated", {}, page);
 }
 
 export async function fetchHiddenGems(page = 1): Promise<TMDBResponse> {
-  return tmdbFetch("/discover/movie", {
-    "vote_count.lte": "1000",
-    "vote_average.gte": "7.5",
-    sort_by: "vote_average.desc",
-    page: String(page),
-    include_adult: "false",
-  });
+  return fetchPaged(
+    "/discover/movie",
+    {
+      "vote_count.gte": "200",
+      "vote_count.lte": "5000",
+      "vote_average.gte": "7.2",
+      sort_by: "vote_average.desc",
+      include_adult: "false",
+    },
+    page
+  );
 }
 
 export function getPosterUrl(path: string | null): string | null {
