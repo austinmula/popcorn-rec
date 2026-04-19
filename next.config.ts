@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "export",
   images: {
     // image.tmdb.org resolves via NAT64 (64:ff9b::/96) in this environment, which
     // Next.js flags as a private IP. TMDB already serves pre-sized images so
