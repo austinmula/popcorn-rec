@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getAllEntries } from "@/lib/watchlist-repo";
+import { getSessionId } from "@/lib/session";
 import WatchlistClient from "./WatchlistClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function WatchlistPage() {
-  const entries = await getAllEntries();
+  const sessionId = await getSessionId();
+  const entries = await getAllEntries(sessionId);
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

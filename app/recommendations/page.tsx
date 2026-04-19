@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { getRecommendations } from "@/lib/recommendations";
+import { getAIRecommendations } from "@/lib/ai-recommendations";
+import { getSessionId } from "@/lib/session";
 import MovieGrid from "@/components/MovieGrid";
+import AIPicksSection from "@/components/AIPicksSection";
 import RefreshButton from "./RefreshButton";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function RecommendationsPage() {
-  const recommendations = await getRecommendations();
+  const sessionId = await getSessionId();
+  const recommendations = await getRecommendations(sessionId);
+  const aiResult = recommendations.length > 0
+    ? await getAIRecommendations(recommendations, sessionId).catch((err) => {
+        console.error("[AI Recommendations] failed:", err);
+        return null;
+      })
+    : null;
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -36,7 +46,16 @@ export default async function RecommendationsPage() {
           </Link>
         </div>
       ) : (
-        <MovieGrid movies={recommendations} />
+        <>
+          {aiResult && aiResult.picks.length > 0 && (
+            <AIPicksSection
+              tasteProfile={aiResult.taste_profile}
+              picks={aiResult.picks}
+            />
+          )}
+          <h2 className="text-xl font-semibold text-white mb-4">All Recommendations</h2>
+          <MovieGrid movies={recommendations} />
+        </>
       )}
     </main>
   );
