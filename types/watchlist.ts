@@ -7,7 +7,6 @@ export type WatchStatus =
   | "waiting_for_season";
 
 export interface WatchlistEntry {
-  _id?: string;
   tmdb_id: number;
   media_type: MediaType;
   status: WatchStatus;
@@ -15,6 +14,6 @@ export interface WatchlistEntry {
   poster_path: string | null;
   genre_ids: number[];
   vote_average: number;
-  added_at: Date;
-  updated_at: Date;
+  added_at: string;
+  updated_at: string;
 }

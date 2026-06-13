@@ -1,17 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function RefreshButton() {
-  const router = useRouter();
+interface Props {
+  onRefresh: () => Promise<void>;
+}
+
+export default function RefreshButton({ onRefresh }: Props) {
   const [loading, setLoading] = useState(false);
 
   async function handleRefresh() {
     setLoading(true);
-    router.refresh();
-    // Give the server a moment to revalidate, then stop the spinner
-    setTimeout(() => setLoading(false), 1200);
+    await onRefresh();
+    setLoading(false);
   }
 
   return (

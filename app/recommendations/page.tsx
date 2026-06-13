@@ -1,12 +1,40 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { getRecommendations } from "@/lib/recommendations";
 import MovieGrid from "@/components/MovieGrid";
 import RefreshButton from "./RefreshButton";
+import { useWatchlistStore } from "@/store/watchlist-store";
+import { NormalizedMedia } from "@/types/movie";
 
-export const revalidate = 300;
+export default function RecommendationsPage() {
+  const entries = useWatchlistStore((s) => s.entries);
+  const likedEntries = entries.filter((e) => e.status === "liked");
 
-export default async function RecommendationsPage() {
-  const recommendations = await getRecommendations();
+  const [recommendations, setRecommendations] = useState<NormalizedMedia[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRecs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ likedEntries, allEntries: entries }),
+      });
+      const data = await res.json();
+      setRecommendations(data.recommendations ?? []);
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries.length]);
+
+  useEffect(() => {
+    fetchRecs();
+  }, [fetchRecs]);
+
+  const hasLiked = likedEntries.length > 0;
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -15,13 +43,18 @@ export default async function RecommendationsPage() {
       </Link>
       <div className="flex items-center justify-between mt-4 mb-2">
         <h1 className="text-3xl font-bold text-white">For You</h1>
-        <RefreshButton />
+        {hasLiked && <RefreshButton onRefresh={fetchRecs} />}
       </div>
       <p className="text-gray-400 mb-8">
         Personalized picks based on your liked movies and shows
       </p>
 
-      {recommendations.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-20 text-gray-400">
+          <p className="text-5xl mb-4 animate-pulse">🍿</p>
+          <p className="text-xl">Finding picks for you…</p>
+        </div>
+      ) : !hasLiked ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-5xl mb-4">❤️</p>
           <p className="text-xl">Like some movies or shows first.</p>
@@ -34,6 +67,11 @@ export default async function RecommendationsPage() {
           >
             Browse Movies
           </Link>
+        </div>
+      ) : recommendations.length === 0 ? (
+        <div className="text-center py-20 text-gray-400">
+          <p className="text-xl">No new recommendations found.</p>
+          <p className="text-sm mt-2">Try liking more movies or shows.</p>
         </div>
       ) : (
         <MovieGrid movies={recommendations} />

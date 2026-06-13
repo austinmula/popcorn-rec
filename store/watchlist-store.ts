@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { WatchlistEntry, WatchStatus, MediaType } from "@/types/watchlist";
 
 interface EntryMeta {
@@ -10,95 +11,55 @@ interface EntryMeta {
 
 interface WatchlistState {
   entries: WatchlistEntry[];
-  initialized: boolean;
-  initialize: (entries: WatchlistEntry[]) => void;
   getStatus: (tmdb_id: number, media_type: MediaType) => WatchStatus | null;
-  setStatus: (
-    tmdb_id: number,
-    media_type: MediaType,
-    status: WatchStatus,
-    meta: EntryMeta
-  ) => Promise<void>;
-  removeEntry: (tmdb_id: number, media_type: MediaType) => Promise<void>;
+  setStatus: (tmdb_id: number, media_type: MediaType, status: WatchStatus, meta: EntryMeta) => void;
+  removeEntry: (tmdb_id: number, media_type: MediaType) => void;
 }
 
-export const useWatchlistStore = create<WatchlistState>((set, get) => ({
-  entries: [],
-  initialized: false,
+export const useWatchlistStore = create<WatchlistState>()(
+  persist(
+    (set, get) => ({
+      entries: [],
 
-  initialize(entries) {
-    set({ entries: entries ?? [], initialized: true });
-  },
+      getStatus(tmdb_id, media_type) {
+        const entry = get().entries.find(
+          (e) => e.tmdb_id === tmdb_id && e.media_type === media_type
+        );
+        return entry?.status ?? null;
+      },
 
-  getStatus(tmdb_id, media_type) {
-    const entry = (get().entries ?? []).find(
-      (e) => e.tmdb_id === tmdb_id && e.media_type === media_type
-    );
-    return entry?.status ?? null;
-  },
+      setStatus(tmdb_id, media_type, status, meta) {
+        const entries = get().entries;
+        const now = new Date().toISOString();
+        const existing = entries.find(
+          (e) => e.tmdb_id === tmdb_id && e.media_type === media_type
+        );
+        if (existing) {
+          set({
+            entries: entries.map((e) =>
+              e.tmdb_id === tmdb_id && e.media_type === media_type
+                ? { ...e, status, updated_at: now }
+                : e
+            ),
+          });
+        } else {
+          set({
+            entries: [
+              ...entries,
+              { tmdb_id, media_type, status, ...meta, added_at: now, updated_at: now },
+            ],
+          });
+        }
+      },
 
-  async setStatus(tmdb_id, media_type, status, meta) {
-    const prev = get().entries ?? [];
-    const now = new Date();
-
-    // Optimistic update
-    const existing = prev.find((e) => e.tmdb_id === tmdb_id && e.media_type === media_type);
-    if (existing) {
-      set({
-        entries: prev.map((e) =>
-          e.tmdb_id === tmdb_id && e.media_type === media_type
-            ? { ...e, status, updated_at: now }
-            : e
-        ),
-      });
-    } else {
-      const newEntry: WatchlistEntry = {
-        tmdb_id,
-        media_type,
-        status,
-        title: meta.title,
-        poster_path: meta.poster_path,
-        genre_ids: meta.genre_ids,
-        vote_average: meta.vote_average,
-        added_at: now,
-        updated_at: now,
-      };
-      set({ entries: [...prev, newEntry] });
-    }
-
-    try {
-      const res = await fetch("/api/watchlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tmdb_id, media_type, status, ...meta }),
-      });
-      if (!res.ok) throw new Error("API error");
-      const { entry } = await res.json();
-      set((s) => ({
-        entries: s.entries.map((e) =>
-          e.tmdb_id === tmdb_id && e.media_type === media_type ? entry : e
-        ),
-      }));
-    } catch {
-      // Rollback
-      set({ entries: prev });
-    }
-  },
-
-  async removeEntry(tmdb_id, media_type) {
-    const prev = get().entries ?? [];
-    // Optimistic remove
-    set({ entries: prev.filter((e) => !(e.tmdb_id === tmdb_id && e.media_type === media_type)) });
-
-    try {
-      const res = await fetch(
-        `/api/watchlist/${tmdb_id}?media_type=${media_type}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) throw new Error("API error");
-    } catch {
-      // Rollback
-      set({ entries: prev });
-    }
-  },
-}));
+      removeEntry(tmdb_id, media_type) {
+        set({
+          entries: get().entries.filter(
+            (e) => !(e.tmdb_id === tmdb_id && e.media_type === media_type)
+          ),
+        });
+      },
+    }),
+    { name: "popcorn-watchlist" }
+  )
+);

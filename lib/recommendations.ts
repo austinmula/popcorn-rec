@@ -1,5 +1,5 @@
 import { NormalizedMedia, Movie } from "@/types/movie";
-import { getAllEntries, getLikedEntries } from "./watchlist-repo";
+import { WatchlistEntry } from "@/types/watchlist";
 import { normalizeMedia } from "./tmdb";
 import { fetchTVRecommendations, fetchTVByGenre } from "./tmdb-tv";
 
@@ -50,8 +50,10 @@ async function fetchDiscoverMovieByGenres(genreIds: number[]): Promise<Normalize
   }
 }
 
-export async function getRecommendations(): Promise<NormalizedMedia[]> {
-  const likedEntries = await getLikedEntries();
+export async function getRecommendations(
+  likedEntries: WatchlistEntry[],
+  allEntries: WatchlistEntry[]
+): Promise<NormalizedMedia[]> {
   if (likedEntries.length === 0) return [];
 
   // Count genre frequency
@@ -84,7 +86,6 @@ export async function getRecommendations(): Promise<NormalizedMedia[]> {
   ]);
 
   // Build set of already-tracked tmdb_ids
-  const allEntries = await getAllEntries();
   const trackedKeys = new Set(allEntries.map((e) => `${e.tmdb_id}:${e.media_type}`));
 
   // Combine + deduplicate + filter already-tracked

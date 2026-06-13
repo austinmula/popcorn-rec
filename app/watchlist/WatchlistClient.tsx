@@ -22,14 +22,8 @@ const STATUS_OPTIONS: { status: WatchStatus; icon: string; label: string }[] = [
   { status: "waiting_for_season", icon: "⏳", label: "Waiting for Season" },
 ];
 
-interface Props {
-  initialEntries: WatchlistEntry[];
-}
-
-export default function WatchlistClient({ initialEntries }: Props) {
-  const { entries: storeEntries, initialized, setStatus, removeEntry } = useWatchlistStore();
-  const entries = initialized ? storeEntries : initialEntries;
-
+export default function WatchlistClient() {
+  const { entries, setStatus, removeEntry } = useWatchlistStore();
   const [dislikedExpanded, setDislikedExpanded] = useState(false);
 
   const grouped = GROUPS.map((g) => ({
@@ -37,9 +31,7 @@ export default function WatchlistClient({ initialEntries }: Props) {
     items: entries.filter((e) => e.status === g.status),
   }));
 
-  const total = entries.length;
-
-  if (total === 0) {
+  if (entries.length === 0) {
     return (
       <div className="text-center py-20 text-gray-400">
         <p className="text-5xl mb-4">🍿</p>
