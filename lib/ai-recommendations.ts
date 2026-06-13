@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { getLikedEntries } from "./watchlist-repo";
+import { WatchlistEntry } from "@/types/watchlist";
 import { NormalizedMedia } from "@/types/movie";
 
 const GENRE_MAP: Record<number, string> = {
@@ -62,14 +62,13 @@ const TOOL_INPUT_SCHEMA = {
 
 export async function getAIRecommendations(
   candidates: NormalizedMedia[],
-  sessionId: string
+  likedEntries: WatchlistEntry[]
 ): Promise<AIResult | null> {
-  const liked = await getLikedEntries(sessionId);
-  if (liked.length === 0 || candidates.length === 0) return null;
+  if (likedEntries.length === 0 || candidates.length === 0) return null;
 
   const client = new Anthropic();
 
-  const likedSummary = liked.map((e) => ({
+  const likedSummary = likedEntries.map((e) => ({
     title: e.title,
     type: e.media_type,
     genres: e.genre_ids.map((id) => GENRE_MAP[id] ?? "Unknown").join(", "),

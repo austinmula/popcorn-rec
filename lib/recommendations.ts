@@ -50,11 +50,12 @@ async function fetchDiscoverMovieByGenres(genreIds: number[]): Promise<Normalize
   }
 }
 
-export async function getRecommendations(sessionId: string): Promise<NormalizedMedia[]> {
-  const likedEntries = await getLikedEntries(sessionId);
+export async function getRecommendations(
+  likedEntries: WatchlistEntry[],
+  allEntries: WatchlistEntry[]
+): Promise<NormalizedMedia[]> {
   if (likedEntries.length === 0) return [];
 
-  // Count genre frequency
   const genreCount: Record<number, number> = {};
   for (const entry of likedEntries) {
     for (const gid of entry.genre_ids) {
@@ -67,12 +68,10 @@ export async function getRecommendations(sessionId: string): Promise<NormalizedM
     .slice(0, 3)
     .map(([id]) => Number(id));
 
-  // Top 3 most recently liked items (by added_at)
   const recentLiked = [...likedEntries]
     .sort((a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime())
     .slice(0, 3);
 
-  // Fetch recommendations for each recent liked item + genre-based discovery
   const [discoverMovies, discoverTV, ...itemRecs] = await Promise.all([
     fetchDiscoverMovieByGenres(top3Genres),
     fetchTVByGenre(top3Genres[0] ?? 18),
@@ -83,11 +82,8 @@ export async function getRecommendations(sessionId: string): Promise<NormalizedM
     ),
   ]);
 
-  // Build set of already-tracked tmdb_ids
-  const allEntries = await getAllEntries(sessionId);
   const trackedKeys = new Set(allEntries.map((e) => `${e.tmdb_id}:${e.media_type}`));
 
-  // Combine + deduplicate + filter already-tracked
   const seen = new Set<string>();
   const results: NormalizedMedia[] = [];
 
@@ -99,6 +95,5 @@ export async function getRecommendations(sessionId: string): Promise<NormalizedM
     results.push(item);
   }
 
-  // Sort by vote_average desc, return top 50
   return results.sort((a, b) => b.vote_average - a.vote_average).slice(0, 50);
 }

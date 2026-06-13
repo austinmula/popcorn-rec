@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { getAllEntries } from "@/lib/watchlist-repo";
-import { getSessionId } from "@/lib/session";
+import { useWatchlistStore } from "@/store/watchlist-store";
 import WatchlistClient from "./WatchlistClient";
 
-export const dynamic = "force-dynamic";
-
-export default async function WatchlistPage() {
-  const sessionId = await getSessionId();
-  const entries = await getAllEntries(sessionId);
+export default function WatchlistPage() {
+  const count = useWatchlistStore((s) => s.entries.length);
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

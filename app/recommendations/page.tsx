@@ -2,26 +2,43 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { getRecommendations } from "@/lib/recommendations";
-import { getAIRecommendations } from "@/lib/ai-recommendations";
-import { getSessionId } from "@/lib/session";
 import MovieGrid from "@/components/MovieGrid";
 import AIPicksSection from "@/components/AIPicksSection";
 import RefreshButton from "./RefreshButton";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { NormalizedMedia } from "@/types/movie";
+import { AIResult } from "@/lib/ai-recommendations";
 
-export const dynamic = "force-dynamic";
+export default function RecommendationsPage() {
+  const entries = useWatchlistStore((s) => s.entries);
+  const likedEntries = entries.filter((e) => e.status === "liked");
 
-export default async function RecommendationsPage() {
-  const sessionId = await getSessionId();
-  const recommendations = await getRecommendations(sessionId);
-  const aiResult = recommendations.length > 0
-    ? await getAIRecommendations(recommendations, sessionId).catch((err) => {
-        console.error("[AI Recommendations] failed:", err);
-        return null;
-      })
-    : null;
+  const [recommendations, setRecommendations] = useState<NormalizedMedia[]>([]);
+  const [aiResult, setAiResult] = useState<AIResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRecs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ likedEntries, allEntries: entries }),
+      });
+      const data = await res.json();
+      setRecommendations(data.recommendations ?? []);
+      setAiResult(data.aiResult ?? null);
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries.length]);
+
+  useEffect(() => {
+    fetchRecs();
+  }, [fetchRecs]);
+
+  const hasLiked = likedEntries.length > 0;
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -30,7 +47,7 @@ export default async function RecommendationsPage() {
       </Link>
       <div className="flex items-center justify-between mt-4 mb-2">
         <h1 className="text-3xl font-bold text-white">For You</h1>
-        {hasLiked && <RefreshButton onRefresh={fetchRecs} />}
+        {hasLiked && !loading && <RefreshButton onRefresh={fetchRecs} />}
       </div>
       <p className="text-gray-400 mb-8">
         Personalized picks based on your liked movies and shows
