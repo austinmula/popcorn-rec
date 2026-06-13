@@ -50,10 +50,8 @@ async function fetchDiscoverMovieByGenres(genreIds: number[]): Promise<Normalize
   }
 }
 
-export async function getRecommendations(
-  likedEntries: WatchlistEntry[],
-  allEntries: WatchlistEntry[]
-): Promise<NormalizedMedia[]> {
+export async function getRecommendations(sessionId: string): Promise<NormalizedMedia[]> {
+  const likedEntries = await getLikedEntries(sessionId);
   if (likedEntries.length === 0) return [];
 
   // Count genre frequency
@@ -86,6 +84,7 @@ export async function getRecommendations(
   ]);
 
   // Build set of already-tracked tmdb_ids
+  const allEntries = await getAllEntries(sessionId);
   const trackedKeys = new Set(allEntries.map((e) => `${e.tmdb_id}:${e.media_type}`));
 
   // Combine + deduplicate + filter already-tracked

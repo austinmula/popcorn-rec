@@ -147,15 +147,15 @@ export default async function HomePage() {
         {/* TV Shows */}
         <section className="mb-4 mt-4">
           <h2 className="text-xl font-semibold text-white mb-6">TV Shows</h2>
+          <CategorySection
+            title="Trending TV This Week"
+            movies={trendingTV.slice(0, 12)}
+          />
+          <CategorySection
+            title="Top Rated Shows"
+            movies={topRatedTV.slice(0, 12)}
+          />
         </section>
-        <CategorySection
-          title="Trending TV This Week"
-          movies={trendingTV.slice(0, 12)}
-        />
-        <CategorySection
-          title="Top Rated Shows"
-          movies={topRatedTV.slice(0, 12)}
-        />
       </div>
     </main>
   );

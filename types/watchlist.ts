@@ -7,6 +7,8 @@ export type WatchStatus =
   | "waiting_for_season";
 
 export interface WatchlistEntry {
+  _id?: string;
+  session_id?: string;
   tmdb_id: number;
   media_type: MediaType;
   status: WatchStatus;
